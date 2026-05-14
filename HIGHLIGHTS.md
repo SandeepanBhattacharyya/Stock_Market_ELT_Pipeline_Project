@@ -7,8 +7,6 @@ not boilerplate, not tutorial code. Both solved actual production problems.
 
 ## 1. Airflow — Dynamic XCom-Keyed S3 Upload + Parallel Dimension Load + Resilient Slack Summary
 
-**File:** `airflow/dags/eod_ingestion_dag.py`
-
 This section of the DAG shows three things working together:
 
 - **XCom-driven dynamic filenames** — the trading date resolved by the Polygon
