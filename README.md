@@ -58,7 +58,7 @@ This project delivers:
                                                               Power BI
 ```
 
-![Architecture Diagram](docs/architecture.png)
+![Architecture Diagram](airflow_p.PNG)
 
 ---
 
@@ -142,6 +142,8 @@ eod-securities-pipeline/
     Posts trading date,   trigger_rule=all_done (fires even on partial failure)
     row counts, rejects ──►
 ```
+
+![Architecture Diagram](docker_file_download.PNG)
 
 ### Dependency Graph
 
@@ -236,6 +238,8 @@ SEC_PRICING database
 | `snowflake_default` | Snowflake |
 | `slack_default` | HTTP (Slack Incoming Webhook) |
 
+![Architecture Diagram](airflow_p.PNG)
+
 ### Slack Notifications
 
 Two types of notifications fire automatically:
@@ -246,6 +250,8 @@ Two types of notifications fire automatically:
    - RAW row count + reject count
    - Estimated CORE inserts/updates
    - Final CORE and FACT row counts
+
+![Architecture Diagram](slack.PNG)
 
 ---
 
@@ -291,6 +297,7 @@ The error message (`not authorized to perform sts:AssumeRole`) pointed directly
 at IAM — but IAM was never the problem. Full resolution steps and the exact
 bucket policy used are documented in
 [`docs/SNOWFLAKE_S3_TROUBLESHOOTING.md`](SNOWFLAKE_S3_TROUBLESHOOTING.md).
+![Architecture Diagram](snowflake_listing.PNG)
 
 ### 2. Window Functions in MERGE Source
 
@@ -323,12 +330,7 @@ Connect Power BI to Snowflake using the `SA` schema views. All 6 views are desig
 
 | Dashboard | Source View | Key Visuals |
 |---|---|---|
-| Equity & ETF Liquidity Insights | `VW_ETF_LIQUIDITY_30D_SUMMARY` | Bar chart: ETF avg 30d volume rank |
-| Watchlist Performance & Momentum | `VW_WATCHLIST_HISTORY` | Line chart: close price trend per stock |
-| Volume & Traded-Value Intelligence | `VW_TOP20_EQUITY_BY_VOLUME_DAILY` | Treemap: traded value by symbol |
-| Sector Liquidity Contribution | `VW_SECTOR_LIQUIDITY_LATEST` | Pie/donut: % contribution by sector |
-| Daily Market Movers | `VW_SECURITY_LAST_30D_DAILY_RETURN` | Table: top gainers/losers by daily return |
-| Daily Automated Refresh | All views | Scheduled dataset refresh (post-DAG completion) |
+
 
 ---
 
