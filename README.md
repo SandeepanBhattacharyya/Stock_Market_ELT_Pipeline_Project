@@ -1,7 +1,8 @@
 # EOD Securities Pricing Analytics Pipeline
 
-> **End-to-End Batch Data Engineering Project** — Polygon.io → AWS S3 → Snowflake → Power BI  
-> Orchestrated with Apache Airflow on Docker | Alerts via Slack
+1. **End-to-End Batch Data Engineering Project** — Polygon.io → AWS S3 → Snowflake → Power BI
+2. Orchestrated with Apache Airflow on Docker
+3. Configured Alerts via Slack
 
 ---
 
@@ -23,13 +24,13 @@
 
 ## Overview
 
-**RBF**, a global investment firm, required a fully automated daily batch analytics platform to replace manual CSV collection and ad-hoc reporting. Analysts previously stitched together pricing data by hand — delaying portfolio reviews, overnight risk adjustments, and sector monitoring.
+**RBF**, a global investment firm, required a fully automated daily batch analytics platform to replace manual CSV collection and ad-hoc reporting. Analysts previously stitched together pricing data by hand delaying portfolio reviews, overnight risk adjustments, and sector monitoring.
 
 This project delivers:
 
 - **Automated EOD ingestion** of all U.S. equities and ETFs via the Polygon.io Grouped Daily Bars API
 - **Multi-layer Snowflake data warehouse** (RAW → CORE → DM_DIM/DM_FACT → SA)
-- **Data quality enforcement** with a reject table capturing invalid records (e.g. negative volumes)
+- **Data quality enforcement** with a reject table capturing invalid records (e.g. negative volumes) -- to allow Error Handling
 - **Delta freshness checks** to ensure no stale data reaches analytics
 - **Slack alerting** for pipeline failures and daily EOD load summaries
 - **Power BI dashboards** serving 6 curated analytic views for trading, risk, and research teams
@@ -66,13 +67,13 @@ This project delivers:
 | Layer | Technology |
 |---|---|
 | Data Source | [Polygon.io](https://polygon.io) Grouped Daily Bars API |
-| Orchestration | Apache Airflow 3.x (CeleryExecutor) |
+| Orchestration | Apache Airflow |
 | Containerization | Docker + Docker Compose |
 | Cloud Storage | AWS S3 (bronze landing zone) |
 | Data Warehouse | Snowflake (multi-layer ELT) |
 | Alerting | Slack Incoming Webhooks |
 | Visualization | Microsoft Power BI |
-| Language | Python 3.x, SQL |
+| Language | Python, SQL |
 
 ---
 
@@ -94,30 +95,17 @@ eod-securities-pipeline/
 │
 ├── snowflake/
 │   ├── 01_setup/
-│   │   └── init_snowflake_objects.sql    # Warehouse, DB, schemas, all tables
+│   │   └── initialize Warehouse, DB, schemas, all tables
 │   ├── 02_raw_to_core/
-│   │   └── raw_to_core_merge.sql         # Dedup + MERGE into CORE with window functions
+│   │   └── Load from Raw layer to Core. Deduplication + MERGE into CORE with window functions
 │   ├── 03_dimensions/
-│   │   └── load_dim_tables.sql           # MERGE into DIM_SECURITY + DIM_DATE
+│   │   └── MERGE into DIM_SECURITY + DIM_DATE
 │   ├── 04_facts/
-│   │   └── load_fact_daily_price.sql     # MERGE into FACT_DAILY_PRICE
+│   │   └── MERGE into FACT_DAILY_PRICE
 │   ├── 05_sa_layer/
-│   │   └── sa_layer_views.sql            # 6 reporting views (analytics serving layer)
+│   │   └── This has the reporting views (analytics serving layer)
 │   └── 06_reject/
-│       └── reject_table_creation.sql     # Reject table + quarantine helpers
-│
-├── docker/
-│   └── docker-compose.yaml              # Full Airflow stack (CeleryExecutor + Redis + PG)
-│
-├── docs/
-│   ├── architecture.png
-│   ├── SNOWFLAKE_SETUP.md
-│   ├── AIRFLOW_CONNECTIONS.md
-│   └── ENGINEERING_NOTES.md
-│
-├── .env.example                          # Template for required secrets
-├── .gitignore
-└── README.md
+│       └── Error Handling - Reject table
 ```
 
 ---
@@ -127,9 +115,9 @@ eod-securities-pipeline/
 ### Step-by-Step Pipeline
 
 ```
-[1] Download CSV          polygon_eod_data_downloader.py
+[1] Download CSV          
     Polygon Grouped       Lookback up to N days to find last valid
-    Daily Bars API   ───► trading day. Writes /tmp/eod_YYYY-MM-DD.csv
+    Daily Bars API   ───► trading day. Writes /tmp/eod_YYYY-MM-DD.csv in docker
          │
 [2] Verify Local File     verify_file_exists()
     Check file exists     Raises AirflowFailException if missing
@@ -222,7 +210,7 @@ SEC_PRICING database
 
 ## Airflow DAGs
 
-### `eod_ingestion_dag.py` — Main Production DAG
+### Main Production DAG
 
 | Config | Value |
 |---|---|
@@ -280,7 +268,7 @@ All 6 views are built on top of `VW_SECURITY_DAILY_PRICES` (the enriched base vi
 
 ### 1. Snowflake External Stage to S3
 
-Setting up Snowflake's external stage required creating a dedicated IAM role with S3 read permissions, a Storage Integration object in Snowflake (to avoid storing AWS credentials), and granting the Snowflake AWS account principal trust in the IAM policy. The stage uses a named file format (CSV with header skip) and the `COPY INTO` command references `$STAGE/market/bronze/eod/` prefix-matched to the current trading date.
+
 
 ### 2. Window Functions in MERGE Source
 
@@ -306,53 +294,6 @@ The official `apache/airflow` Docker image does not include `pandas` by default.
 - Polygon.io API key (free Starter tier sufficient for grouped daily)
 - Slack workspace with Incoming Webhooks app enabled
 
-### 1. Clone and configure environment
-
-```bash
-git clone https://github.com/your-username/eod-securities-pipeline.git
-cd eod-securities-pipeline
-cp .env.example .env
-# Fill in AIRFLOW_UID, JWT secrets, etc.
-```
-
-### 2. Start Airflow
-
-```bash
-cd docker
-docker compose up airflow-init   # first-time DB init
-docker compose up -d             # start all services
-# UI available at http://localhost:8080 (admin / admin)
-```
-
-### 3. Configure Airflow Connections & Variables
-
-Navigate to **Admin → Connections** and add:
-- `aws_default` — AWS credentials with S3 read/write
-- `snowflake_default` — Snowflake account, warehouse `WH_INGEST`, database `SEC_PRICING`
-- `slack_default` — HTTP connection with Slack webhook path as password
-
-Navigate to **Admin → Variables** and add:
-- `POLYGON_API_KEY`
-- `LOOKBACK_DAYS` = `10`
-- `S3_BUCKET` = your bucket name
-
-### 4. Initialize Snowflake
-
-Run scripts in order inside Snowflake Worksheets:
-
-```sql
--- Run in sequence:
-01_setup/init_snowflake_objects.sql          -- warehouse, DB, schemas, tables
-06_reject/reject_table_creation.sql          -- reject quarantine table
--- (DAG handles 02–04 at runtime via SQLExecuteQueryOperator)
-05_sa_layer/sa_layer_views.sql               -- reporting views
-```
-
-### 5. Populate DIM_SECURITY_ATTRIBUTES
-
-The `DM_DIM.DIM_SECURITY_ATTRIBUTES` table holds enrichment data (security name, type, sector, industry). Load this from a reference dataset (e.g. Polygon.io Ticker Details API or a static CSV) before running Power BI dashboards. Without it, the SA views will still function but `security_name` and `sector` columns will be NULL.
-
----
 
 ## Analytics Deliverables (Power BI)
 
@@ -369,6 +310,3 @@ Connect Power BI to Snowflake using the `SA` schema views. All 6 views are desig
 
 ---
 
-## License
-
-This project is for portfolio and educational demonstration purposes.
