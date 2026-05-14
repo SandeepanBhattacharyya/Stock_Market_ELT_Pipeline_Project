@@ -8,17 +8,7 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Data Flow](#data-flow)
-- [Snowflake Schema Design](#snowflake-schema-design)
-- [Airflow DAGs](#airflow-dags)
-- [SA Layer (Reporting Views)](#sa-layer-reporting-views)
-- [Engineering Challenges & Solutions](#engineering-challenges--solutions)
-- [Setup & Deployment](#setup--deployment)
-- [Analytics Deliverables (Power BI)](#analytics-deliverables-power-bi)
+
 
 ---
 
@@ -542,4 +532,6 @@ code itself.
 
 If you are a recruiter or engineer reading this — 
 The `SNOWFLAKE_S3_TROUBLESHOOTING.md` AND `HIGHLIGHTS.md` is worth a look beyond the README.
+1. [`SNOWFLAKE_S3_TROUBLESHOOTING.md`](SNOWFLAKE_S3_TROUBLESHOOTING.md)
+2. [`HIGHLIGHTS.md`](HIGHLIGHTS.md)
 Feel free to ⭐ the repo if you found this useful!
