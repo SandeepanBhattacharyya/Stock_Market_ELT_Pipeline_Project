@@ -9,12 +9,12 @@
 
 ```
 Error assuming AWS_ROLE:
-User: arn:aws:iam::565139241044:user/hr7q1000-s is not authorized
+User: arn:.... is not authorized
 to perform: sts:AssumeRole on resource:
-arn:aws:iam::224976804920:role/snowflake_access_control_S3
+arn:aws:iam::....
 ```
 
-This fired when running `LIST @S3_EOD_STAGE` after setting up the Snowflake
+This fired when running `LIST @S3_EOD_STAGE1` after setting up the Snowflake
 Storage Integration. The trust policy and IAM role looked correct — but the
 error persisted. It turned out to be **three separate issues stacked on top
 of each other**, each one hiding behind the previous fix.
@@ -35,8 +35,8 @@ Settings — none of which the error message hints at.
 ### Issue 1 — Missing S3 Bucket Policy
 
 **Why it happens:**  
-Snowflake's IAM user (`account 565139241044`) lives in a **different AWS account**
-than the IAM role (`account 224976804920`). For cross-account S3 access, the
+Snowflake's IAM user (`account ####`) lives in a **different AWS account**
+than the IAM role (`account #####`). For cross-account S3 access, the
 bucket itself must explicitly grant the role permission via a bucket policy.
 The role's own permissions are not enough on their own — S3 evaluates both
 sides independently.
@@ -52,7 +52,7 @@ Added a cross-account bucket policy to `rbf-stocks-daily-sb02`:
       "Sid": "SnowflakeStageAccess",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::224976804920:role/snowflake_access_control_S3"
+        "AWS": "arn:aws:iam::#######:role/snowflake_access_control_S3"
       },
       "Action": [
         "s3:GetObject",
@@ -67,7 +67,7 @@ Added a cross-account bucket policy to `rbf-stocks-daily-sb02`:
       "Sid": "SnowflakeListAccess",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::224976804920:role/snowflake_access_control_S3"
+        "AWS": "arn:aws:iam::######:role/snowflake_access_control_S3"
       },
       "Action": "s3:ListBucket",
       "Resource": "arn:aws:s3:::rbf-stocks-daily-sb02"
@@ -137,9 +137,9 @@ and must be copied exactly into the AWS IAM trust policy:
 
 | Field | Value | Where Used |
 |---|---|---|
-| `STORAGE_AWS_IAM_USER_ARN` | `arn:aws:iam::565139241044:user/hr7q1000-s` | IAM Trust Policy → Principal |
-| `STORAGE_AWS_EXTERNAL_ID` | `WK13577_SFCRole=5_YU8QJLh...` | IAM Trust Policy → Condition → `sts:ExternalId` |
-| `STORAGE_AWS_ROLE_ARN` | `arn:aws:iam::224976804920:role/snowflake_access_control_S3` | Snowflake Storage Integration |
+| `STORAGE_AWS_IAM_USER_ARN` | `arn:aws:iam::...........` | IAM Trust Policy → Principal |
+| `STORAGE_AWS_EXTERNAL_ID` | `WK13.....` | IAM Trust Policy → Condition → `sts:ExternalId` |
+| `STORAGE_AWS_ROLE_ARN` | `arn:aws:iam::#########:role/snowflake_access_control_S3` | Snowflake Storage Integration |
 
 > ⚠️ **If the storage integration is ever recreated**, `STORAGE_AWS_IAM_USER_ARN`
 > and `STORAGE_AWS_EXTERNAL_ID` will change. The IAM trust policy must be updated
