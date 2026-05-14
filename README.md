@@ -286,7 +286,8 @@ the previous fix:
 The error message (`not authorized to perform sts:AssumeRole`) pointed directly
 at IAM — but IAM was never the problem. Full resolution steps and the exact
 bucket policy used are documented in
-[`SNOWFLAKE_S3_TROUBLESHOOTING.md`](SNOWFLAKE_S3_TROUBLESHOOTING.md).
+==> [`SNOWFLAKE_S3_TROUBLESHOOTING.md`](SNOWFLAKE_S3_TROUBLESHOOTING.md).
+
 ![Architecture Diagram](snowflake_listing.PNG)
 
 ### 2. Window Functions in MERGE Source
@@ -514,6 +515,23 @@ The Power BI dashboard is built on top of the SA layer, enabling direct access t
 ![Architecture Diagram](securities_market_report1.jpg)
 ![Architecture Diagram](securities_market_report2.jpg)
 
+### Key Analysis
+
+- Technology dominates sector liquidity at **32.69% ($190bn)** — nearly double
+  Consumer Cyclical at 16.45%, signaling concentrated market activity in a single sector.
+
+- **SPDR S&P 500** ranks as the most liquid ETF with a 30-day average traded value
+  of **$48.45bn**, with Invesco QQQ following at $31.92bn — together accounting for
+  the bulk of ETF market activity.
+
+- **NVIDIA leads** all equities by traded value at **$151.69bn** on a close of
+  $1,095.72 — significantly ahead of Tesla at $137.22bn, reflecting outsized
+  institutional interest in AI-driven semiconductors.
+
+- Daily average return dropped to **-1.22% on Oct 22** before recovering to
+  **+1.32% on Oct 23** — a sharp two-day swing that would trigger watchlist
+  alerts and warrant overnight risk review.
+
 -------------------------------------------------------------------
 ## Final Thoughts
 
@@ -534,4 +552,5 @@ If you are a recruiter or engineer reading this —
 The `SNOWFLAKE_S3_TROUBLESHOOTING.md` AND `HIGHLIGHTS.md` is worth a look beyond the README.
 1. [`SNOWFLAKE_S3_TROUBLESHOOTING.md`](SNOWFLAKE_S3_TROUBLESHOOTING.md)
 2. [`HIGHLIGHTS.md`](HIGHLIGHTS.md)
+
 Feel free to ⭐ the repo if you found this useful!
