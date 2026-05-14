@@ -268,7 +268,29 @@ All 6 views are built on top of `VW_SECURITY_DAILY_PRICES` (the enriched base vi
 
 ### 1. Snowflake External Stage to S3
 
+Setting up the external stage produced an `sts:AssumeRole` authorization error
+even with a correctly configured IAM trust policy. The root cause was three
+separate AWS account-level issues stacked in sequence — each one hiding behind
+the previous fix:
 
+- **Missing cross-account S3 bucket policy** — Snowflake's IAM user lives in a
+  different AWS account than the IAM role. S3 evaluates both sides independently,
+  so the bucket itself requires an explicit policy granting the role access.
+  The role's own permissions are not sufficient for cross-account access.
+
+- **ap-southeast-7 (Thailand) region not opted in** — this is a newer AWS opt-in
+  region. The AWS account had never enabled it, so STS was silently rejecting
+  `AssumeRole` requests at the account level before IAM was even evaluated.
+
+- **STS regional endpoint not activated** — opting into a region does not
+  automatically activate its STS endpoint. AWS requires this to be toggled on
+  separately under IAM → Account Settings → Security Token Service. Without it,
+  `AssumeRole` fails even with a correct trust policy and an opted-in region.
+
+The error message (`not authorized to perform sts:AssumeRole`) pointed directly
+at IAM — but IAM was never the problem. Full resolution steps and the exact
+bucket policy used are documented in
+[`docs/SNOWFLAKE_S3_TROUBLESHOOTING.md`](SNOWFLAKE_S3_TROUBLESHOOTING.md).
 
 ### 2. Window Functions in MERGE Source
 
