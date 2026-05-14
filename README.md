@@ -8,7 +8,35 @@
 
 ## Table of Contents
 
+## Table of Contents
 
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Data Flow](#data-flow)
+  - [Step-by-Step Pipeline](#step-by-step-pipeline)
+  - [Dependency Graph](#dependency-graph)
+- [Snowflake Schema Design](#snowflake-schema-design)
+  - [Layer Architecture](#layer-architecture)
+  - [Key Design Decisions](#key-design-decisions)
+- [Airflow DAGs](#airflow-dags)
+  - [Main Production DAG](#main-production-dag)
+  - [Slack Notifications](#slack-notifications)
+- [SA Layer (Reporting Views)](#sa-layer-reporting-views)
+- [Engineering Challenges & Solutions](#engineering-challenges--solutions)
+  - [1. Snowflake External Stage to S3](#1-snowflake-external-stage-to-s3)
+  - [2. Window Functions in MERGE Source](#2-window-functions-in-merge-source)
+  - [3. Reject Table for Invalid Records](#3-reject-table-for-invalid-records)
+  - [4. Pandas in Dockerized Airflow](#4-pandas-in-dockerized-airflow)
+- [Setup & Deployment](#setup--deployment)
+- [Code Highlights](#code-highlights)
+  - [1. Airflow — Dynamic XCom-Keyed S3 Upload + Parallel Dimension Load + Resilient Slack Summary](#1-airflow--dynamic-xcom-keyed-s3-upload--parallel-dimension-load--resilient-slack-summary)
+  - [2. SQL — RAW → CORE MERGE with CTE-Wrapped Deduplication + Reject Routing](#2-sql--raw--core-merge-with-cte-wrapped-deduplication--reject-routing)
+  - [Quick Reference — What Each Piece Demonstrates](#quick-reference--what-each-piece-demonstrates)
+- [Final Analytics Deliverables (Power BI)](#final-analytics-deliverables-power-bi)
+  - [Key Analysis](#key-analysis)
+- [Final Thoughts](#final-thoughts)
 
 ---
 
